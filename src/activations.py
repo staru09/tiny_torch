@@ -25,6 +25,7 @@ class Sigmoid:
 
 
 class ReLU:
+
     def parameters(self):
         parameters = []
 
@@ -37,6 +38,7 @@ class ReLU:
 
 
 class Tanh:
+
     def parameters(self):
         parameters=[]
 
@@ -50,6 +52,7 @@ class Tanh:
         return self.forward(x)
     
 class GELU:
+
     def project(self):
         params=[]
 
@@ -65,6 +68,7 @@ class GELU:
     
 
 class Softmax:
+    
     def projections(self):
         return []
 
