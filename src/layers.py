@@ -75,27 +75,26 @@ class Dropout(Layer):
         else:
             self.p = p
 
-    def forward(self,x,training=True):
-        if not training or self.p == DROPOUT_MIN_PROB:
+    def _should_apply_dropout(self, training):
+        return training and self.p > DROPOUT_MIN_PROB
+
+    def _generate_dropout_mask(self, shape):
+        keep_prob = 1.0 - self.p
+        binary_mask = (np.random.random(shape) < keep_prob).astype(np.float32)
+        scale = 1.0 / keep_prob
+        return Tensor(binary_mask * scale)
+
+    def forward(self, x, training=True):
+        if not self._should_apply_dropout(training):
             return x
         if self.p == DROPOUT_MAX_PROB:
             return Tensor(np.zeros_like(x.data))
-        keep_prob = 1.0-self.p
+        return x * self._generate_dropout_mask(x.data.shape)
 
-        mask = np.random.random(x.data.shape) < keep_prob
+    def __call__(self, x, training=True):
+        return self.forward(x, training)
 
-        mask_tensor = Tensor(mask.astype(np.float32))
-
-        scaled = Tensor(np.array(1 / keep_prob))
-
-        output = x*scaled*mask_tensor
-
-        return output
-
-    def __call__(self,x,training=True):
-        return self.forward(x,training)
-
-    def __parameters__(self):
+    def parameters(self):
         return []
     
     def __repr__(self):

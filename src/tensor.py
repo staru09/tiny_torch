@@ -14,6 +14,32 @@ class Tensor:
         """Human-readable string representation."""
         return f"Tensor({self.data})"
 
+    @property
+    def ndim(self):
+        return len(self.shape)
+
+    def numel(self):
+        return self.size
+
+    def contiguous(self):
+        return Tensor(np.ascontiguousarray(self.data))
+
+    def _validate_matmul_shapes(self, other):
+        if not isinstance(other, Tensor):
+            raise TypeError(
+                f"Matrix multiplication requires Tensor, got {type(other).__name__}"
+            )
+        if len(self.shape) == 0 or len(other.shape) == 0:
+            raise ValueError(
+                f"Matrix multiplication requires at least 1D tensors, "
+                f"got shapes {self.shape} and {other.shape}"
+            )
+        if len(self.shape) >= 2 and len(other.shape) >= 2:
+            if self.shape[-1] != other.shape[-2]:
+                raise ValueError(
+                    f"Inner dimensions don't match: {self.shape[-1]} vs {other.shape[-2]}"
+                )
+
     def __add__(self,other):
         if isinstance(other,Tensor):
             return Tensor(self.data+other.data)
@@ -45,17 +71,8 @@ class Tensor:
         return Tensor(result_data)
 
 
-    def matmul(self,other):
-        if not isinstance(other,Tensor):
-            raise TypeError("Can't perform calculation on this")
-            
-        if len(self.shape) == 0 or len(other.shape) == 0:
-            raise ValueError("Need atleast 1-D vector for matmul")
-
-        if len(self.shape) >= 2 and len(other.shape)>= 2:
-
-            if self.shape[-1]!=other.shape[-2]:
-                raise ValueError("Dimension mismatched for matmul")
+    def matmul(self, other):
+        self._validate_matmul_shapes(other)
 
         if len(self.shape) == 2 and len(other.shape) == 2:
             M, K = self.shape
